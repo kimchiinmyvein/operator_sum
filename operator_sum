@@ -1,0 +1,120 @@
+from typing import List, Tuple, Union, Optional
+
+
+class Solution:
+    length: int
+    numbers: List[int]
+    operators: List[int]
+    operators_num: int
+
+    # ====== Representation Invariants ======
+    # length == len(numbers)
+    # operators_num = len(numbers) - 1
+    # length >= 2
+
+    def __init__(self) -> None:
+        print("The first input value you are entering must be \n"
+              "equivalent to the number of integers(the second input)!!! \n")
+        self.length = int(input("Enter the number of integers: "))
+        self.numbers = list(map(int, input("Enter the integers: ").split()))
+        self.operators = list(map(int, input("Enter the number of each "
+                                             "operator: ").split()))
+        self.operators_num = sum(self.operators)
+
+    def get_operators(self) -> List[str]:
+        operator_list = []
+        for n in range(self.operators[0]):
+            operator_list.append("+")
+        for n in range(self.operators[1]):
+            operator_list.append("-")
+        for n in range(self.operators[2]):
+            operator_list.append("*")
+        for n in range(self.operators[3]):
+            operator_list.append("//")
+        return operator_list
+
+    def remove_duplicates(self, pre_result: List[str]) -> List[List[str]]:
+        result = []
+        for combo in pre_result:
+            if combo.count("+") == self.operators[0] and \
+                    combo.count("-") == self.operators[1] and \
+                    combo.count("*") == self.operators[2] and \
+                    combo.count("//") == self.operators[3]:
+                result.append(combo)
+
+        unique_combos = []
+        for combos in result:
+            if combos not in unique_combos:
+                unique_combos.append(combos)
+
+        return unique_combos
+
+    def operator_combos(self, r: int, operator_list: List[str]) \
+            -> List[List[str]]:
+        if r == 0:
+            return [[]]
+        else:
+            smaller = self.operator_combos(r - 1, operator_list)
+            pre_result = []
+            for code in smaller:
+                for i in range(self.operators_num):
+                    pre_result.append(code + [operator_list[i]])
+        return pre_result
+
+    def calculate(self) -> List[List[int]]:
+        # noinspection PyTypeChecker
+        op_combos = self.remove_duplicates(self.operator_combos(
+            self.operators_num, self.get_operators()))
+
+        for combo in op_combos:
+            i = 0
+            for num in self.numbers:
+                combo.insert(i, num)
+                i += 2
+
+        for sub in op_combos:
+            while len(sub) != 1:
+                if sub[1] == "+":
+                    sum_ = sub[0] + sub[2]
+                    self.delete_123(sub)
+                    sub.insert(0, sum_)
+                elif sub[1] == "-":
+                    sum_ = sub[0] - sub[2]
+                    self.delete_123(sub)
+                    sub.insert(0, sum_)
+                elif sub[1] == "*":
+                    sum_ = sub[0] * sub[2]
+                    self.delete_123(sub)
+                    sub.insert(0, sum_)
+                else:
+                    if sub[0] < 0:
+                        sum_ = (abs(sub[0]) // sub[2]) * -1
+                        self.delete_123(sub)
+                        sub.insert(0, sum_)
+                    else:
+                        sum_ = sub[0] // sub[2]
+                        self.delete_123(sub)
+                        sub.insert(0, sum_)
+
+        return op_combos
+
+    @staticmethod
+    def delete_123(sub: List[Union[int, str]]) -> None:
+        for i in [0, 0, 0]:
+            sub.pop(i)
+
+    def max_min(self) -> Tuple[int, int]:
+        sum_list = []
+        nested_sum_list = self.calculate()
+        for sum_ in nested_sum_list:
+            sum_list.append(sum_[0])
+
+        return max(sum_list), min(sum_list)
+
+
+if __name__ == "__main__":
+    s = Solution()
+    # to get operator combinations
+    print("\n\nResult: ")
+    for e in s.max_min():
+        print(e)
